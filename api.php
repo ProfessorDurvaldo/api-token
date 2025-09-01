@@ -22,8 +22,8 @@ function makeToken($length = 10) {
  * Cria registro na tabela de tokens e retorna o token em claro
  */
 function issueToken($userId, $name, $abilities, $ttlMinutes) {
-    $tonenPlain  = makeToken();                     // ex: "5829103746"
-    $hashed = hash('sha256', $tonenPlain);
+    $tokenPlain  = makeToken();                     // ex: "5829103746"
+    $hashed = hash('sha256', $tokenPlain);
     $now    = Carbon::now();
     $exp    = $now->copy()->addMinutes($ttlMinutes);
 
@@ -38,17 +38,17 @@ function issueToken($userId, $name, $abilities, $ttlMinutes) {
         'updated_at'     => $now,
     ]);
 
-    return ['plain' => $tonenPlain, 'expires_at' => $exp->toIso8601String()];
+    return ['plain' => $tokenPlain, 'expires_at' => $exp->toIso8601String()];
 }
 
 /**
  * Valida token do header Authorization
  */
 function checkAccess(Request $request, $ability = null) {
-    $tonenPlain = $request->bearerToken();
-    if (!$tonenPlain) return null;
+    $tokenPlain = $request->bearerToken();
+    if (!$tokenPlain) return null;
 
-    $token = DB::table('personal_access_tokens')->where('token', hash('sha256', $tonenPlain))->first();
+    $token = DB::table('personal_access_tokens')->where('token', hash('sha256', $tokenPlain))->first();
     if (!$token) return null;
 
     if ($token->expires_at && Carbon::parse($token->expires_at)->isPast()) {
